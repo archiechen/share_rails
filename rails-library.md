@@ -5,11 +5,15 @@
     cd library
     bundle install
     ```
-
 1.   启动rails
 
     ```bash
     rails s
+    ```
+1.   都说WEBrick很烂，我们换成thin吧
+
+    ```ruby
+    gem "thin"
     ```
 1.   创建图书的CRUD
 
@@ -87,4 +91,32 @@
         <li><%= link_to('Login', new_session_path(:user)) %></li>
       </ul>
     <% end %>
+    ```
+1.   我要借书，先增加个按钮
+
+    ```html
+    <%= link_to t('.lend', :default => t("helpers.links.lend")), 
+                      lend_book_path(book), :class => 'btn btn-mini', :method => :put %>
+    ```
+    增加controller
+
+    ```ruby
+    # PUT /books/1/lend
+    def lend
+      @book = Book.find(params[:id])
+
+      respond_to do |format|
+        format.html { redirect_to books_url }
+        format.json { head :no_content }
+      end
+    end
+    ```
+
+    增加router
+    ```ruby
+    resources :books do
+      member do
+        put :lend
+      end
+    end
     ```
