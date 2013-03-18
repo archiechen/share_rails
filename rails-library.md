@@ -54,7 +54,7 @@ rake db:migrate
 before_filter :authenticate_user!
 ```
 1. 我要退出！
-```erb
+```html
 <% if current_user %>
   <ul class="nav pull-right">
     <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><%= current_user.email %><b class="caret"></b></a>
