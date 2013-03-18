@@ -1,4 +1,4 @@
-1   创建一个rails项目。
+1.   创建一个rails项目。
 
     ```bash
     rails new library
@@ -6,22 +6,22 @@
     bundle install
     ```
 
-1   启动rails
+1.   启动rails
 
     ```bash
     rails s
     ```
-1   创建图书的CRUD
+1.   创建图书的CRUD
 
     ```bash
     rails g scaffold book name:string amount:integer
     ```
-1   创建数据库
+1.   创建数据库
 
     ```bash
     rake db:migrate
     ```
-1   so easy，我们来美化一下。
+1.   so easy，我们来美化一下。
 
     ```ruby
     gem "therubyracer"
@@ -36,19 +36,19 @@
     rails g bootstrap:layout application fluid
     rails g bootstrap:themed Books
     ```
-1   删除默认页面，重启rails
+1.   删除默认页面，重启rails
 
     ```bash
     rm ./public/index.html
     mv ./public/favicon.png ./app/assets/images/
     rails s
     ```
-1   设置root path,默认图书列表为首页
+1.   设置root path,默认图书列表为首页
 
     ```ruby
     root :to => "books#index"
     ```
-1   有书不能借啊，来套用户管理的功能吧
+1.   有书不能借啊，来套用户管理的功能吧
 
     ```ruby
     gem "devise"
@@ -63,12 +63,12 @@
 
     rake db:migrate
     ```
-1   登录后才能看到图书列表
+1.   登录后才能看到图书列表
 
     ```ruby
     before_filter :authenticate_user!
     ```
-1   我要退出！
+1.   我要退出！
 
     ```
     <% if current_user %>
