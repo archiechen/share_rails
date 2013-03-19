@@ -174,7 +174,7 @@
       it "如果amount>=1,lend_to后，amount减1" do
         expect{
           @book.lend_to(@user)
-        }.to change(@book,:amount).from(2).to(1)
+        }.to change(@book,:amount).by(-1)
       end
     end
     ```
@@ -305,6 +305,11 @@
     end
 
     #controller spec
+
+    @book_of_user = FactoryGirl.create(:book) do |book|
+      book.lending_books.create(:book=>book,:user=>@user)
+    end
+
     describe "GET mybooks" do
       it "只显示我借到的书" do
         get :mybooks
@@ -333,7 +338,6 @@
         <tr>
           <th><%= model_class.human_attribute_name(:id) %></th>
           <th><%= model_class.human_attribute_name(:name) %></th>
-          <th><%=t '.actions', :default => t("helpers.actions") %></th>
         </tr>
       </thead>
       <tbody>
@@ -341,12 +345,174 @@
           <tr>
             <td><%= link_to book.id, book_path(book) %></td>
             <td><%= book.name %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    ```
+1.   我想看到这本书是什么时候借的。
+    view中显示的应该是LendingBook,而不是Book，重构吧！从router开始。
+
+    ```ruby
+    #lending_books_routing_spec.rb
+    require "spec_helper"
+
+    describe LendingBooksController do
+      describe "routing" do
+        
+        it "routes to #lending_book" do
+          get("/lending_books").should route_to("lending_books#index")
+        end
+
+      end
+    end
+
+    #routers.rb
+    resources :lending_books
+    ```
+    创建controller
+    
+    ```bash
+    rails g controller lending_books
+    ```
+    增加controller的spec
+    
+    ```ruby
+    #encoding: utf-8
+    require 'spec_helper'
+
+    describe LendingBooksController do
+      before(:each) do
+        @user = FactoryGirl.create(:user)
+
+        @book_of_user = FactoryGirl.create(:book) do |book|
+          book.lending_books.create(:book=>book,:user=>@user)
+        end
+
+        sign_in @user
+      end
+
+      describe "GET index" do
+        it "只显示我借到的书" do
+          get :index
+          assigns(:lending_books).should eq(@book_of_user.lending_books)
+        end
+      end
+    end
+
+    #controller
+    class LendingBooksController < ApplicationController
+      before_filter :authenticate_user!
+
+      def index
+        @lending_books = current_user.lending_books
+
+        respond_to do |format|
+          format.html # index.html.erb
+          format.json { render json: @lending_books }
+        end
+      end
+
+    end
+    ```
+    删除原来mybooks的测试代码，mybooks.html.erb从books移到lending_books,并重名命index.html.erb，修改内容
+
+    ```html
+    <%- model_class = LendingBook -%>
+    <div class="page-header">
+      <h1><%=t '.title', :default => model_class.model_name.human.pluralize %></h1>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th><%= model_class.human_attribute_name(:book) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @lending_books.each do |lending_book| %>
+          <tr>
+            <td><%= lending_book.book.name %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    ```
+
+1.   有借有还，再借不难。
+    
+    ```ruby
+    it "routes to #destroy" do
+      delete("/lending_books/1").should route_to("lending_books#destroy",:id=>"1")
+    end
+
+    #controller spec
+    describe "DELETE destroy" do
+      it "还书后，删除LendingBook" do
+        expect {
+          delete :destroy, {:id => @lending_book.to_param}
+        }.to change(LendingBook, :count).by(-1)
+      end
+
+      it "还书后，返回已借图书列表" do
+        delete :destroy, {:id => @lending_book.to_param}
+        response.should redirect_to(lending_books_url)
+      end
+    end
+
+    #controller
+    def destroy
+      @lending_book = current_user.lending_books.find(params[:id])
+      @lending_book.destroy
+
+      respond_to do |format|
+        format.html { redirect_to lending_books_url }
+        format.json { head :no_content }
+      end
+    end
+    ```
+
+    ```html
+    <%- model_class = LendingBook -%>
+    <div class="page-header">
+      <h1><%=t '.title', :default => model_class.model_name.human.pluralize %></h1>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th><%= model_class.human_attribute_name(:book) %></th>
+          <th><%=t '.actions', :default => t("helpers.actions") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @lending_books.each do |lending_book| %>
+          <tr>
+            <td><%= lending_book.book.name %></td>
             <td>
-              <%= link_to t('.lend', :default => t("helpers.links.lend")), 
-                          lend_book_path(book), :class => 'btn btn-mini', :method => :put %>
+                <%= link_to t('.destroy', :default => t("helpers.links.return")),
+                          lending_book_path(lending_book),
+                          :method => :delete,
+                          :data => { :confirm => t('.confirm', :default => t("helpers.links.confirm", :default => 'Are you sure?')) },
+                          :class => 'btn btn-mini btn-danger' %>
             </td>
           </tr>
         <% end %>
       </tbody>
     </table>
+    ```
+1.   还了别人也不能借，没更新amount?先测试！
+
+    ```ruby
+    it "还书后，书的Amount加1" do
+      delete :destroy, {:id => @lending_book.to_param}
+      Book.find(@lending_book.book.to_param).amount.should eql(2)
+    end
+
+    #lending_book.rb
+    after_destroy :update_book_amount
+
+    private
+      def update_book_amount
+        self.book.amount+=1
+        self.book.save()
+      end
     ```
