@@ -480,6 +480,7 @@
       <thead>
         <tr>
           <th><%= model_class.human_attribute_name(:book) %></th>
+          <th><%= model_class.human_attribute_name(:created_at) %></th>
           <th><%=t '.actions', :default => t("helpers.actions") %></th>
         </tr>
       </thead>
@@ -487,6 +488,7 @@
         <% @lending_books.each do |lending_book| %>
           <tr>
             <td><%= lending_book.book.name %></td>
+            <td><%= time_ago_in_words lending_book.created_at %></td>
             <td>
                 <%= link_to t('.destroy', :default => t("helpers.links.return")),
                           lending_book_path(lending_book),
@@ -515,4 +517,81 @@
         self.book.amount+=1
         self.book.save()
       end
+    ```
+1.   谁都能管理图书列表太乱了吧，加上授权功能吧。
+
+    ```ruby
+    gem "cancan"
+    ```
+
+    ```bash 
+    bundle install
+    ```
+
+    ```bash
+    rails g cancan:ability
+    ```
+1.   我们只要能区分是否为admin就行了，user.admin?
+
+    ```ruby
+    class Ability
+      include CanCan::Ability
+
+      def initialize(user)
+        user ||= User.new # guest user (not logged in)
+
+        if user.admin?
+          can :manage, :all
+        else
+          can :read, :all
+        end
+        
+      end
+    end
+    ```
+1.   修改数据库结构，别忘了设置default
+    
+    ```bash
+    rails g migration add_admin_to_user admin:boolean
+    ```
+1.   修改新建按钮，只有admin可以看到
+    
+    ```html
+    <% if can? :create, @book %>
+    <%= link_to t('.new', :default => t("helpers.links.new")),
+                new_book_path,
+                :class => 'btn btn-primary' %>
+    <% end %>
+    ```
+    运行测试，失败了。
+
+    ```ruby
+    #加在before中
+    @ability = Object.new
+    @ability.extend(CanCan::Ability)
+    controller.stub(:current_ability) { @ability }
+
+    it "renders a list of books" do
+      @ability.can :create, Book
+      render
+
+      # Run the generator again with the --webrat flag if you want to use webrat matchers
+      assert_select "tr>td", :text => "Name".to_s, :count => 2
+      assert_select "tr>td", :text => 1.to_s, :count => 2
+
+      assert_select ".btn-primary"
+      
+    end
+    ```
+1.   在controller中增加限制
+  
+    ```ruby
+    authorize_resource
+
+
+    #修改测试books_controller_spec.rb
+    @ability = Object.new
+    @ability.extend(CanCan::Ability)
+    @controller.stub(:current_ability) { @ability }
+    @ability.can :manage, Book
     ```
