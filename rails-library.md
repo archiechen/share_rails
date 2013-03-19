@@ -297,3 +297,56 @@
       }.should change(LendingBook, :count).by(0)
     end
     ```
+1.   我可不想一直在这个图书列表里操作，至少还书的时候不是！那我们分成两个功能吧：［我借的书，我要借书］，顺便清理菜单；先上测试！
+    
+    ```ruby
+    it "routes to #myboosk" do
+      get("/mybooks").should route_to("books#mybooks")
+    end
+
+    #controller spec
+    describe "GET mybooks" do
+      it "只显示我借到的书" do
+        get :mybooks
+        assigns(:books).should eq([@book_of_user])
+      end
+    end
+
+    #controller
+    def mybooks
+      @books = current_user.books
+
+      respond_to do |format|
+        format.html # index.html.erb
+        format.json { render json: @books }
+      end
+    end
+    ```
+
+    ```html
+    <%- model_class = Book -%>
+    <div class="page-header">
+      <h1><%=t '.title', :default => model_class.model_name.human.pluralize %></h1>
+    </div>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th><%= model_class.human_attribute_name(:id) %></th>
+          <th><%= model_class.human_attribute_name(:name) %></th>
+          <th><%=t '.actions', :default => t("helpers.actions") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @books.each do |book| %>
+          <tr>
+            <td><%= link_to book.id, book_path(book) %></td>
+            <td><%= book.name %></td>
+            <td>
+              <%= link_to t('.lend', :default => t("helpers.links.lend")), 
+                          lend_book_path(book), :class => 'btn btn-mini', :method => :put %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    ```
