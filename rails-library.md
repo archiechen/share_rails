@@ -119,6 +119,12 @@
     
     ```bash
     rake spec
+
+    cp ../library_bak/spec/controllers/books_controller_spec.rb ./spec/controllers/
+    cp ../library_bak/spec/support/* ./spec/support/
+    cp ../library_bak/spec/spec_helper.rb ./spec/
+    cp ../library_bak/spec/factories/* ./spec/factories/
+    cp ../library_bak/spec/requests/books_spec.rb ./spec/requests/
     ```
 1.   要借书，先写测试，从route测试开始
 
