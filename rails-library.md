@@ -198,6 +198,7 @@
 1.   书都借成负数了！补充测试先。
 
     ```ruby
+    #book_spec.rb
     it "如果amount==0,lend_to返回false" do
       @book_zero.lend_to(@user).should be_false
     end
@@ -224,6 +225,13 @@
           errors[:amount]<<"都被借光啦！"
         end
       end
+    ```
+    还要修复controller的测试
+
+    ```ruby
+    def valid_attributes
+      { "name" => "MyString", "amount" => 1 }
+    end
     ```
 1.   我想知道是谁借了书？什么时间借的？ok，我们需要建一个中间对象做many-to-many关联。
 
