@@ -324,7 +324,7 @@
     end
 
     match '/mybooks' => 'books#mybooks', :as => "mybooks", :via => :get
-    
+
     #controller spec
 
     @book_of_user = FactoryGirl.create(:book) do |book|
@@ -447,16 +447,22 @@
       <thead>
         <tr>
           <th><%= model_class.human_attribute_name(:book) %></th>
+          <th><%= model_class.human_attribute_name(:created_at) %></th>
         </tr>
       </thead>
       <tbody>
         <% @lending_books.each do |lending_book| %>
           <tr>
             <td><%= lending_book.book.name %></td>
+            <td><%=l lending_book.created_at %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
+    ```
+
+    ```ruby
+    time_ago_in_words
     ```
 
 1.   有借有还，再借不难。
