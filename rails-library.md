@@ -233,7 +233,7 @@
       { "name" => "MyString", "amount" => 1 }
     end
     ```
-1.   我想知道是谁借了书？什么时间借的？ok，我们需要建一个中间对象做many-to-many关联。
+1.   想知道是自己借了哪些书？什么时间借的？ok，我们需要建一个中间对象做many-to-many关联。
 
     ```bash
     rails g model lending_book user_id:integer book_id:integer
