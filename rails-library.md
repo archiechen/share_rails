@@ -183,6 +183,11 @@
         }.to change(@book,:amount).by(-1)
       end
     end
+
+    def lend_to(user)
+      self.amount-=1
+      self.save()
+    end
     ```
 1.   view就不测了，增加个借阅按钮
 
