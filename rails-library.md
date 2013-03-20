@@ -633,3 +633,15 @@
     @controller.stub(:current_ability) { @ability }
     @ability.can :manage, Book
     ```
+
+    ```html
+    <% if can? :manage, Book %>
+      <%= link_to t('.edit', :default => t("helpers.links.edit")),
+                  edit_book_path(book), :class => 'btn btn-mini' %>
+      <%= link_to t('.destroy', :default => t("helpers.links.destroy")),
+                  book_path(book),
+                  :method => :delete,
+                  :data => { :confirm => t('.confirm', :default => t("helpers.links.confirm", :default => 'Are you sure?')) },
+                  :class => 'btn btn-mini btn-danger' %>
+    <% end %>
+    ```
