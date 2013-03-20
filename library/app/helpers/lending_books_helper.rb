@@ -1,0 +1,2 @@
+module LendingBooksHelper
+end
