@@ -473,6 +473,10 @@
     end
 
     #controller spec
+    @book_of_user = FactoryGirl.create(:book) do |book|
+      @lending_book = book.lending_books.create(:book=>book,:user=>@user)
+    end
+
     describe "DELETE destroy" do
       it "还书后，删除LendingBook" do
         expect {
@@ -531,6 +535,7 @@
 1.   还了别人也不能借，没更新amount?先测试！
 
     ```ruby
+    #lending_books_controller_spec.rb
     it "还书后，书的Amount加1" do
       delete :destroy, {:id => @lending_book.to_param}
       Book.find(@lending_book.book.to_param).amount.should eql(2)
@@ -590,7 +595,7 @@
 1.   修改新建按钮，只有admin可以看到
     
     ```html
-    <% if can? :create, @book %>
+    <% if can? :create, Book %>
     <%= link_to t('.new', :default => t("helpers.links.new")),
                 new_book_path,
                 :class => 'btn btn-primary' %>
