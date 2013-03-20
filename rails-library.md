@@ -545,6 +545,12 @@
         self.book.save()
       end
     ```
+1.   只要有GET和DELETE
+    
+    ```ruby
+    :only => [:index, :destroy] 
+    ```
+
 1.   谁都能管理图书列表太乱了吧，加上授权功能吧。
 
     ```ruby
