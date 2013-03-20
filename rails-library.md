@@ -323,6 +323,8 @@
       get("/mybooks").should route_to("books#mybooks")
     end
 
+    match '/mybooks' => 'books#mybooks', :as => "mybooks", :via => :get
+    
     #controller spec
 
     @book_of_user = FactoryGirl.create(:book) do |book|
